@@ -55,7 +55,7 @@ runs:
       shell: bash                 
     - name: Build the Docker image
       run: |
-        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{steps.vars.outputs.sha_short}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
+        docker build  . --tag "${{inputs.acr-name}}/${{inputs.app-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.app-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.app-name}}:${{steps.vars.outputs.sha_short}}" --tag "${{inputs.acr-name}}/${{inputs.app-name}}:$GITHUB_SHA"
       shell: bash        
     - uses: azure/docker-login@v1
       with:
@@ -65,9 +65,9 @@ runs:
 
     - name: Push image to registry
       run: |
-        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:${{ github.run_number }}
-        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:${{ steps.vars.outputs.sha_short }}
-        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA      
+        docker push ${{inputs.acr-name}}/${{inputs.app-name}}:${{ github.run_number }}
+        docker push ${{inputs.acr-name}}/${{inputs.app-name}}:${{ steps.vars.outputs.sha_short }}
+        docker push ${{inputs.acr-name}}/${{inputs.app-name}}:$GITHUB_SHA      
       shell: bash
     # - name: Run lint and test
     #   run: |
