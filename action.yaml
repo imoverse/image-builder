@@ -61,7 +61,7 @@ runs:
       with:
         login-server: ${{ inputs.acr-name }}
         username: '${{ inputs.registry-username }}'
-        password: '${{ input.registry-password }}'            
+        password: '${{ inputs.registry-password }}'            
 
     - name: Push image to registry
       run: |
