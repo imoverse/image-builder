@@ -1,0 +1,55 @@
+name: 'Build docker image'
+description: 'Build imove docker image'
+inputs:
+  acr-name: 
+    description: "docker registry name"
+    required: false
+    default: "imoveregistry.azurecr.io"
+  repo-name: 
+    description: "container repo name"
+    required: true
+    default: ""
+  cluster-name: 
+    description: "k8s cluster name"
+    required: true
+    default: "imove-test-cluster"
+  resource-group:
+    description: "Azure resource group name"
+    required: true 
+    default: "imove-test-resources" 
+  img-pull-secret:
+    description: "Image pull secret"
+    required: false
+    default: imoveregistry
+  namespace:
+    description: "k8s namespace to deploy to on given cluster"
+    required: true
+    default: "imove-test"  
+outputs:
+  random-number:
+    description: "Random number"
+    value: ${{ steps.random-number-generator.outputs.random-id }}
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - name: Check outputs        
+      run: echo ${{ steps.vars.outputs.sha_short }}        
+      shell: bash                 
+    - name: Build the Docker image
+      run: |
+        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{ steps.vars.outputs.sha_short }}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
+      shell: bash        
+    - name: Run lint and test
+      run: |
+        docker run --rm ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA npm run predeploy     
+      shell: bash           
+    # - run: echo Hello ${{ inputs.repo-name }}.
+    #   shell: bash
+    # - id: random-number-generator
+    #   run: echo "::set-output name=random-id::$(echo $RANDOM)"
+    #   shell: bash
+    # - run: ${{ github.action_path }}/goodbye.sh
+    #   shell: bash
