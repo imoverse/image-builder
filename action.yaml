@@ -37,34 +37,37 @@ outputs:
   random-number:
     description: "Random number"
     value: ${{ steps.random-number-generator.outputs.random-id }}
+  sha_short:
+    description: "Short sha"
+    value: ${{steps.vars.outputs.sha_short}}
 runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
-    # - name: Set outputs
-    #   id: vars
-    #   run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
-    #   shell: bash      
-    # - name: Check outputs        
-    #   run: echo ${{ steps.vars.outputs.sha_short }}        
-    #   shell: bash                 
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+      shell: bash      
+    - name: Check outputs        
+      run: echo ${{ steps.vars.outputs.sha_short }}        
+      shell: bash                 
     - name: Build the Docker image
       run: |
-        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$(git rev-parse --short HEAD)" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
+        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{steps.vars.outputs.sha_short}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
       shell: bash        
     - uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.ACR_NAME }}
-        username: '${{ secrets.REGISTRY_USERNAME }}'
-        password: '${{ secrets.REGISTRY_PASSWORD }}'            
+        login-server: ${{ inputs.acr-name }}
+        username: '${{ inputs.registry-username }}'
+        password: '${{ input.registry-password }}'            
 
     - name: Push image to registry
       run: |
-        docker push $ACR_NAME/$REPO_NAME:${{ github.run_number }}
-        docker push $ACR_NAME/$REPO_NAME:$(git rev-parse --short HEAD)
-        docker push $ACR_NAME/$REPO_NAME:$GITHUB_SHA      
+        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:${{ github.run_number }}
+        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:${{ steps.vars.outputs.sha_short }}
+        docker push ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA      
       shell: bash
     # - name: Run lint and test
     #   run: |
