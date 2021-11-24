@@ -46,10 +46,10 @@ runs:
       run: |
         docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$(git rev-parse --short HEAD)" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
       shell: bash        
-    - name: Run lint and test
-      run: |
-        docker run --rm ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA npm run predeploy     
-      shell: bash           
+    # - name: Run lint and test
+    #   run: |
+    #     docker run --rm ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA npm run predeploy     
+    #   shell: bash           
     # - run: echo Hello ${{ inputs.repo-name }}.
     #   shell: bash
     # - id: random-number-generator
