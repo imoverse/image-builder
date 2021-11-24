@@ -5,26 +5,34 @@ inputs:
     description: "docker registry name"
     required: false
     default: "imoveregistry.azurecr.io"
-  repo-name: 
-    description: "container repo name"
+  app-name: 
+    description: "container image name, without prefix. Ex chargebee"
     required: true
     default: ""
-  cluster-name: 
-    description: "k8s cluster name"
+  registry-username: 
+    description: "container registry username"
     required: true
-    default: "imove-test-cluster"
-  resource-group:
-    description: "Azure resource group name"
-    required: true 
-    default: "imove-test-resources" 
-  img-pull-secret:
-    description: "Image pull secret"
-    required: false
-    default: imoveregistry
-  namespace:
-    description: "k8s namespace to deploy to on given cluster"
+    default: ""
+  registry-password: 
+    description: "container registry password"
     required: true
-    default: "imove-test"  
+    default: ""        
+  # cluster-name: 
+  #   description: "k8s cluster name"
+  #   required: true
+  #   default: "imove-test-cluster"
+  # resource-group:
+  #   description: "Azure resource group name"
+  #   required: true 
+  #   default: "imove-test-resources" 
+  # img-pull-secret:
+  #   description: "Image pull secret"
+  #   required: false
+  #   default: imoveregistry
+  # namespace:
+  #   description: "k8s namespace to deploy to on given cluster"
+  #   required: true
+  #   default: "imove-test"  
 outputs:
   random-number:
     description: "Random number"
@@ -35,17 +43,29 @@ runs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
-    - name: Set outputs
-      id: vars
-      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
-      shell: bash      
-    - name: Check outputs        
-      run: echo ${{ steps.vars.outputs.sha_short }}        
-      shell: bash                 
+    # - name: Set outputs
+    #   id: vars
+    #   run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+    #   shell: bash      
+    # - name: Check outputs        
+    #   run: echo ${{ steps.vars.outputs.sha_short }}        
+    #   shell: bash                 
     - name: Build the Docker image
       run: |
         docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$(git rev-parse --short HEAD)" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
       shell: bash        
+    - uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}
+        username: '${{ secrets.REGISTRY_USERNAME }}'
+        password: '${{ secrets.REGISTRY_PASSWORD }}'            
+
+    - name: Push image to registry
+      run: |
+        docker push $ACR_NAME/$REPO_NAME:${{ github.run_number }}
+        docker push $ACR_NAME/$REPO_NAME:$(git rev-parse --short HEAD)
+        docker push $ACR_NAME/$REPO_NAME:$GITHUB_SHA      
+      shell: bash
     # - name: Run lint and test
     #   run: |
     #     docker run --rm ${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA npm run predeploy     
