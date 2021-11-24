@@ -35,12 +35,16 @@ runs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 2
+    - name: Set outputs
+      id: vars
+      run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"  
+      shell: bash      
     - name: Check outputs        
       run: echo ${{ steps.vars.outputs.sha_short }}        
       shell: bash                 
     - name: Build the Docker image
       run: |
-        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{ steps.vars.outputs.sha_short }}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
+        docker build  . --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:latest" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:${{github.run_number}}" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$(git rev-parse --short HEAD)" --tag "${{inputs.acr-name}}/${{inputs.repo-name}}:$GITHUB_SHA"
       shell: bash        
     - name: Run lint and test
       run: |
